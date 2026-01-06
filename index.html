@@ -1,0 +1,83 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <meta name="description" content="Peer-to-peer multiplayer Dots and Boxes game"> 
+    <title>Dots and Boxes</title> 
+    <link rel="stylesheet" href="styles/main.css"> 
+    <link rel="stylesheet" href="styles/game.css"> 
+    <link rel="stylesheet" href="styles/components.css"> 
+</head> 
+<body> 
+    <!-- Menu Modal --> 
+    <div id="menuModal" class="modal"> 
+        <div class="modal-content"> 
+            <h1>Dots and Boxes</h1> 
+            <div class="menu-options"> 
+                <button id="localModeBtn" class="btn btn-primary">Local Mode</button> 
+                <button id="onlineModeBtn" class="btn btn-primary">Online Mode</button> 
+            </div> 
+            <div class="grid-size-selector"> 
+                <label for="gridSizeSelect">Grid Size:</label> 
+                <select id="gridSizeSelect"> 
+                    <option value="3">3x3</option> 
+                    <option value="5" selected>5x5</option> 
+                    <option value="7">7x7</option> 
+                </select> 
+            </div> 
+        </div> 
+    </div> 
+ 
+    <!-- Online Mode Setup Modal --> 
+    <div id="onlineSetupModal" class="modal hidden"> 
+        <div class="modal-content"> 
+            <h2>Online Mode</h2> 
+            <div class="online-options"> 
+                <button id="hostGameBtn" class="btn btn-primary">Host Game</button> 
+                <div class="divider">OR</div> 
+                <div class="join-section"> 
+                    <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6"> 
+                    <button id="joinGameBtn" class="btn btn-primary">Join Game</button> 
+                </div> 
+            </div> 
+            <button id="backToMenuBtn" class="btn btn-secondary">Back</button> 
+        </div> 
+    </div> 
+ 
+    <!-- Game Area --> 
+    <div id="gameArea" class="hidden"> 
+        <div id="gameInfo"> 
+            <div id="roomCodeDisplay" class="hidden"></div> 
+            <div id="scoreDisplay">Player 1: 0 | Player 2: 0</div> 
+            <div id="turnIndicator">Player 1's Turn</div> 
+        </div> 
+        <canvas id="gameCanvas"></canvas> 
+        <div id="gameControls"> 
+            <button id="quitGameBtn" class="btn btn-secondary">Quit Game</button> 
+        </div> 
+    </div> 
+ 
+    <!-- Game Over Modal --> 
+    <div id="gameOverModal" class="modal hidden"> 
+        <div class="modal-content"> 
+            <h2>Game Over!</h2> 
+            <div id="winnerText"></div> 
+            <div id="statsDisplay"></div> 
+            <div class="game-over-buttons"> 
+                <button id="restartBtn" class="btn btn-primary">Play Again</button> 
+                <button id="mainMenuBtn" class="btn btn-secondary">Main Menu</button> 
+            </div> 
+        </div> 
+    </div> 
+ 
+    <!-- Error Toast --> 
+    <div id="errorToast" class="toast hidden"></div> 
+ 
+    <!-- PeerJS Library --> 
+    <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script> 
+ 
+    <!-- Game Scripts --> 
+    <script type="module" src="scripts/main.js"></script> 
+</body> 
+</html> 
