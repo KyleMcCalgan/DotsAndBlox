@@ -195,3 +195,109 @@ export function initColorSettings(player1Color, player2Color) {
     document.getElementById('settingsPlayer1Custom').value = player1Color;
     document.getElementById('settingsPlayer2Custom').value = player2Color;
 }
+
+// ===== ONLINE MODE UI =====
+
+/**
+ * Show online setup modal
+ */
+export function showOnlineSetup() {
+    hideAllModals();
+    document.getElementById('onlineSetupModal').classList.remove('hidden');
+}
+
+/**
+ * Show host lobby with peer ID
+ * @param {string} peerId - Host's peer ID
+ */
+export function showHostLobby(peerId) {
+    hideAllModals();
+    const modal = document.getElementById('hostLobbyModal');
+
+    // Set peer ID (displays in monospace font)
+    document.getElementById('hostRoomCode').textContent = peerId;
+
+    // Reset connection status
+    document.getElementById('hostConnectionStatus').innerHTML =
+        '<span class="status-text">Waiting for opponent...</span>';
+
+    // Reset opponent color label
+    document.getElementById('hostOpponentColorLabel').textContent = 'Waiting for opponent...';
+
+    // Disable start button until guest joins
+    document.getElementById('startOnlineGameBtn').disabled = true;
+
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Show guest lobby
+ */
+export function showGuestLobby() {
+    hideAllModals();
+    document.getElementById('guestLobbyModal').classList.remove('hidden');
+}
+
+/**
+ * Update lobby connection status (for host)
+ * @param {string} status - 'ready' when guest connects
+ */
+export function updateLobbyStatus(status) {
+    if (status === 'ready') {
+        // Guest connected - enable start button and update labels
+        document.getElementById('hostConnectionStatus').innerHTML =
+            '<span class="status-text">Ready to start</span>';
+        document.getElementById('startOnlineGameBtn').disabled = false;
+
+        // Update opponent color label
+        document.getElementById('hostOpponentColorLabel').textContent = "Opponent's color";
+    }
+}
+
+/**
+ * Update opponent's color preview in lobby
+ * @param {number} player - Player number (1 or 2)
+ * @param {string} color - Color hex code
+ */
+export function updateOpponentColor(player, color) {
+    if (player === 1) {
+        // Update host color preview (for guest)
+        const preview = document.getElementById('guestHostColorPreview');
+        if (preview) {
+            preview.style.background = color;
+        }
+    } else {
+        // Update guest color preview (for host)
+        const preview = document.getElementById('hostOpponentColorPreview');
+        if (preview) {
+            preview.style.background = color;
+        }
+    }
+}
+
+/**
+ * Copy peer ID to clipboard
+ * @param {string} peerId - Peer ID to copy
+ */
+export function copyPeerId(peerId) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(peerId).then(() => {
+            showFeedback('Peer ID copied to clipboard!');
+        }).catch(() => {
+            showError('Failed to copy peer ID');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = peerId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showFeedback('Peer ID copied!');
+        } catch (err) {
+            showError('Failed to copy peer ID');
+        }
+        document.body.removeChild(textArea);
+    }
+}

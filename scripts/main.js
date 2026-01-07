@@ -10,6 +10,10 @@ import * as UI from './ui-controller.js';
 let selectedPlayer1Color = '#C65D3B';  // Default terracotta
 let selectedPlayer2Color = '#4A6FA5';  // Default steel blue
 
+// Host lobby state
+let hostSelectedColor = '#C65D3B';
+let guestSelectedColor = '#4A6FA5';
+
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupMenuListeners();
     setupGameSetupListeners();
+    setupOnlineSetupListeners();
+    setupHostLobbyListeners();
+    setupGuestLobbyListeners();
     setupGameListeners();
     setupColorSettingsListeners();
     setupGameOverListeners();
@@ -30,9 +37,9 @@ function setupMenuListeners() {
         UI.showGameSetup();
     });
 
-    // Online Mode button (placeholder)
+    // Online Mode button
     document.getElementById('onlineModeBtn').addEventListener('click', () => {
-        UI.showError('Online mode coming in Phase 5!');
+        UI.showOnlineSetup();
     });
 }
 
@@ -65,6 +72,95 @@ function setupGameSetupListeners() {
 
     // Cancel button
     document.getElementById('cancelSetupBtn').addEventListener('click', () => {
+        UI.showMenu();
+    });
+}
+
+// ===== ONLINE SETUP LISTENERS =====
+
+function setupOnlineSetupListeners() {
+    // Host Game button
+    document.getElementById('hostGameBtn').addEventListener('click', () => {
+        console.log('Host game clicked');
+        GameController.startOnlineGameAsHost((peerId) => {
+            console.log('Peer ID created:', peerId);
+            UI.showHostLobby(peerId);
+        });
+    });
+
+    // Join Game button
+    document.getElementById('joinGameBtn').addEventListener('click', () => {
+        const peerId = document.getElementById('roomCodeInput').value.trim();
+
+        if (!peerId || peerId.length === 0) {
+            UI.showError('Please enter a peer ID');
+            return;
+        }
+
+        console.log('Joining game with peer ID:', peerId);
+        GameController.joinOnlineGame(peerId);
+        UI.showGuestLobby();
+    });
+
+    // Back to menu button
+    document.getElementById('backToMenuBtn').addEventListener('click', () => {
+        UI.showMenu();
+    });
+}
+
+// ===== HOST LOBBY LISTENERS =====
+
+function setupHostLobbyListeners() {
+    // Color picker for host
+    setupColorPicker(
+        'host',
+        document.getElementById('hostColorCustom'),
+        document.querySelectorAll('#hostLobbyModal .color-swatch'),
+        (color) => {
+            hostSelectedColor = color;
+            // Send color update to guest if connected
+            GameController.sendColorUpdate(1, color);
+        }
+    );
+
+    // Start Game button
+    document.getElementById('startOnlineGameBtn').addEventListener('click', () => {
+        const gridSize = parseInt(document.getElementById('hostGridSize').value);
+        console.log('Starting online game, grid:', gridSize);
+        GameController.startOnlineGame(gridSize, hostSelectedColor, guestSelectedColor);
+    });
+
+    // Copy peer ID button
+    document.getElementById('copyRoomCodeBtn').addEventListener('click', () => {
+        const peerId = document.getElementById('hostRoomCode').textContent;
+        UI.copyPeerId(peerId);
+    });
+
+    // Cancel button
+    document.getElementById('cancelHostBtn').addEventListener('click', () => {
+        GameController.quitGame();
+        UI.showMenu();
+    });
+}
+
+// ===== GUEST LOBBY LISTENERS =====
+
+function setupGuestLobbyListeners() {
+    // Color picker for guest
+    setupColorPicker(
+        'guest',
+        document.getElementById('guestColorCustom'),
+        document.querySelectorAll('#guestLobbyModal .color-swatch'),
+        (color) => {
+            guestSelectedColor = color;
+            // Send color update to host
+            GameController.sendColorUpdate(2, color);
+        }
+    );
+
+    // Leave Game button
+    document.getElementById('leaveGameBtn').addEventListener('click', () => {
+        GameController.quitGame();
         UI.showMenu();
     });
 }

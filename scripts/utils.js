@@ -1,23 +1,16 @@
-// Utility functions 
-// TODO: Implement helper functions 
- 
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
-const CODE_LENGTH = 6; 
- 
-export function generateRoomCode() { 
-    // TODO: Generate random room code 
-    return 'ABC123'; 
-} 
- 
-const roomCodeMap = new Map(); 
-const peerIdMap = new Map(); 
- 
-export function registerRoomCode(peerId) { 
-    // TODO: Map room code to peer ID 
-    return 'ABC123'; 
-} 
- 
-export function getPeerIdFromCode(code) { 
-    // TODO: Get peer ID from room code 
-    return null; 
-} 
+// Utility functions
+// Simplified - no room code mapping needed, using peer IDs directly
+
+/**
+ * Validate peer ID format
+ * PeerJS IDs are UUIDs: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ * @param {string} peerId - Peer ID to validate
+ * @returns {boolean} True if valid format
+ */
+export function validatePeerId(peerId) {
+    if (!peerId || typeof peerId !== 'string') return false;
+
+    // Accept various formats - PeerJS can generate different ID formats
+    // Typically UUID format but can be custom
+    return peerId.length > 0 && peerId.trim().length > 0;
+}

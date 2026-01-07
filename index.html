@@ -74,11 +74,103 @@
                 <button id="hostGameBtn" class="btn btn-primary">Host Game</button>
                 <div class="divider">OR</div>
                 <div class="join-section">
-                    <input type="text" id="roomCodeInput" placeholder="Enter Room Code" maxlength="6">
+                    <input type="text" id="roomCodeInput" placeholder="Paste Peer ID">
                     <button id="joinGameBtn" class="btn btn-primary">Join Game</button>
                 </div>
             </div>
             <button id="backToMenuBtn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Host Lobby Modal -->
+    <div id="hostLobbyModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Hosting Game</h2>
+
+            <div class="lobby-section">
+                <label>Share this Peer ID with your friend:</label>
+                <div class="room-code-display">
+                    <span id="hostRoomCode" class="room-code">Loading...</span>
+                    <button id="copyRoomCodeBtn" class="btn btn-small">📋 Copy</button>
+                </div>
+            </div>
+
+            <div class="lobby-section">
+                <label>Grid Size:</label>
+                <select id="hostGridSize">
+                    <option value="3">3x3 (4 boxes)</option>
+                    <option value="5" selected>5x5 (16 boxes)</option>
+                    <option value="7">7x7 (36 boxes)</option>
+                </select>
+            </div>
+
+            <div class="lobby-section">
+                <h3>Your Color (Player 1)</h3>
+                <div class="color-picker-compact">
+                    <button class="color-swatch" data-color="#C65D3B" style="background: #C65D3B;"></button>
+                    <button class="color-swatch" data-color="#8B4513" style="background: #8B4513;"></button>
+                    <button class="color-swatch" data-color="#A0522D" style="background: #A0522D;"></button>
+                    <button class="color-swatch" data-color="#CC8B65" style="background: #CC8B65;"></button>
+                    <button class="color-swatch" data-color="#B87333" style="background: #B87333;"></button>
+                    <input type="color" id="hostColorCustom" value="#C65D3B" class="color-input-compact">
+                </div>
+            </div>
+
+            <div class="lobby-section">
+                <h3>Opponent Color (Player 2)</h3>
+                <div class="opponent-color-preview">
+                    <div class="color-preview-box" id="hostOpponentColorPreview" style="background: #4A6FA5;"></div>
+                    <span id="hostOpponentColorLabel">Waiting for opponent...</span>
+                </div>
+            </div>
+
+            <div class="lobby-section">
+                <div class="connection-status" id="hostConnectionStatus">
+                    <span class="status-text">Waiting for opponent...</span>
+                </div>
+            </div>
+
+            <div class="lobby-buttons">
+                <button id="startOnlineGameBtn" class="btn btn-primary" disabled>Start Game</button>
+                <button id="cancelHostBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest Lobby Modal -->
+    <div id="guestLobbyModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Joined Game</h2>
+
+            <div class="lobby-section">
+                <h3>Your Color (Player 2)</h3>
+                <div class="color-picker-compact">
+                    <button class="color-swatch" data-color="#4A6FA5" style="background: #4A6FA5;"></button>
+                    <button class="color-swatch" data-color="#2F4858" style="background: #2F4858;"></button>
+                    <button class="color-swatch" data-color="#5B7C99" style="background: #5B7C99;"></button>
+                    <button class="color-swatch" data-color="#556B2F" style="background: #556B2F;"></button>
+                    <button class="color-swatch" data-color="#708090" style="background: #708090;"></button>
+                    <input type="color" id="guestColorCustom" value="#4A6FA5" class="color-input-compact">
+                </div>
+            </div>
+
+            <div class="lobby-section">
+                <h3>Host Color (Player 1)</h3>
+                <div class="opponent-color-preview">
+                    <div class="color-preview-box" id="guestHostColorPreview" style="background: #C65D3B;"></div>
+                    <span id="guestHostColorLabel">Host's color</span>
+                </div>
+            </div>
+
+            <div class="lobby-section">
+                <div class="connection-status">
+                    <span class="status-text">Waiting for host to start...</span>
+                </div>
+            </div>
+
+            <div class="lobby-buttons">
+                <button id="leaveGameBtn" class="btn btn-secondary">Leave Game</button>
+            </div>
         </div>
     </div>
 
