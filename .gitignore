@@ -12,9 +12,13 @@ node_modules/
 .DS_Store 
 Thumbs.db 
  
-# Build output 
-dist/ 
-build/ 
+# Build output
+dist/
+build/
 
+# Test files
+tests/
 
 CONTEXT.md
+
+TODO.md

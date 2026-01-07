@@ -1,21 +1,42 @@
-/* Main styles - Base layout and responsive design */ 
- 
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-} 
- 
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-    min-height: 100vh; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    padding: 20px; 
-} 
- 
-.hidden { 
-    display: none !important; 
+/* Main styles - Base layout and responsive design */
+
+/* ===== COLOR PALETTE ===== */
+:root {
+    --paper-cream: #F5EFE7;
+    --paper-dark: #E8DCC4;
+    --ink-brown: #3E2723;
+    --ink-light: #6D4C41;
+    --accent-warm: #D7A86E;
+    --accent-red: #C65D3B;
+    --shadow-soft: rgba(62, 39, 35, 0.1);
+    --shadow-medium: rgba(62, 39, 35, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Georgia', 'Palatino', 'Times New Roman', serif;
+    background: var(--paper-cream);
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 31px,
+            var(--paper-dark) 31px,
+            var(--paper-dark) 32px
+        );
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: var(--ink-brown);
+}
+
+.hidden {
+    display: none !important;
 } 
