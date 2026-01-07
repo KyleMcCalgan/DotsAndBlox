@@ -35,11 +35,6 @@ For online mode testing, you'll need to:
 3. One player hosts, shares the room code 
 4. Other player joins using the room code 
  
-## Deployment 
- 
-This project is configured for GitHub Pages deployment. 
-Simply push to your repository and enable GitHub Pages in settings. 
- 
 ## License 
  
 MIT License - Feel free to use and modify! 
