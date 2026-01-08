@@ -259,6 +259,37 @@
     }
 }
 
+/* ===== LOADING INDICATOR ===== */
+
+.loading-indicator {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2001;
+    font-family: 'Georgia', serif;
+}
+
+.loading-indicator p {
+    color: var(--ink-brown);
+    font-size: 16px;
+    margin: 0;
+    white-space: nowrap;
+    opacity: 0.7;
+}
+
+.loading-dots::after {
+    content: '';
+    animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+    100% { content: '.'; }
+}
+
 /* ===== GAME OVER ===== */
 
 .game-over-buttons {

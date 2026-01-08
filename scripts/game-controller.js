@@ -24,6 +24,9 @@ let sessionStats = {
     ties: 0
 };
 
+// Flag to prevent showing disconnect errors when we intentionally close
+let intentionalDisconnect = false;
+
 // ===== PUBLIC API =====
 
 /**
@@ -153,12 +156,8 @@ function handleGameOver() {
         sessionStats.ties++;
     }
 
-    // Close network connection if online mode
-    if (gameMode === 'online') {
-        Network.closeConnection();
-    }
-
     // Show game over modal
+    // DON'T close connection - allow rematch with same opponent!
     UI.showGameOver(gameState, sessionStats);
 }
 
@@ -170,11 +169,25 @@ export function restartGame() {
         const gridSize = gameState.gridSize;
         startLocalGame(gridSize, player1Color, player2Color);
     } else if (gameMode === 'online') {
-        // For online mode, connection already closed, return to menu
-        Network.closeConnection();
-        gameState = null;
-        gameMode = null;
-        UI.showMenu();
+        // For online mode, keep connection and start new game
+        const gridSize = gameState ? gameState.gridSize : 5;
+
+        // Notify opponent we're starting a new game
+        Network.sendData({
+            type: 'rematch',
+            gridSize: gridSize
+        });
+
+        // Reset game state
+        gameState = GameLogic.createGameState(gridSize);
+
+        // Reinitialize canvas and draw
+        Renderer.initCanvas(gridSize);
+        Renderer.drawGame(gameState, player1Color, player2Color);
+
+        // Update UI
+        UI.showGameArea();
+        UI.updateGameInfo(gameState, myPlayer, gameMode, player1Color, player2Color);
     }
 }
 
@@ -208,6 +221,7 @@ export function quitGame() {
         } catch (e) {
             console.error('Failed to send disconnect notification:', e);
         }
+        intentionalDisconnect = true;
         Network.closeConnection();
     }
 
@@ -280,10 +294,16 @@ export function startOnlineGameAsHost(onPeerIdReady) {
 
     console.log('Starting online game as host...');
 
+    // Show loading indicator
+    UI.showLoading('Initializing connection...');
+
     // Initialize peer
     Network.initializePeer(
         (peerId) => {
             console.log('Peer ready! Peer ID:', peerId);
+
+            // Hide loading indicator
+            UI.hideLoading();
 
             // Notify UI that peer ID is ready
             if (onPeerIdReady) {
@@ -293,6 +313,7 @@ export function startOnlineGameAsHost(onPeerIdReady) {
             // Set up host to wait for connections
             Network.hostGame(() => {
                 console.log('Guest connected to lobby!');
+                UI.showFeedback('Opponent connected!');
                 // Update UI immediately when connection is established
                 // (This is a fallback in case guestReady message is delayed)
                 setTimeout(() => {
@@ -352,16 +373,23 @@ export function joinOnlineGame(hostPeerId) {
 
     console.log('Joining online game with peer ID:', hostPeerId);
 
+    // Show loading indicator
+    UI.showLoading('Connecting to host...');
+
     // Initialize peer
     Network.initializePeer(
         (myPeerId) => {
             console.log('Peer ready, attempting to join...');
+
+            UI.showLoading('Joining game...');
 
             // Join the host's game
             Network.joinGame(
                 hostPeerId,
                 () => {
                     console.log('Connected to host!');
+                    UI.hideLoading();
+                    UI.showFeedback('Connected to host!');
                     // Wait a moment to ensure host's data listener is ready
                     setTimeout(() => {
                         console.log('Sending guestReady signal...');
@@ -481,22 +509,53 @@ function handleNetworkMessage(data) {
             }
             break;
 
+        case 'rematch':
+            // Opponent wants to play again
+            console.log('Rematch requested by opponent');
+
+            // Reset game state with same grid size
+            gameState = GameLogic.createGameState(data.gridSize);
+
+            // Reinitialize canvas and draw
+            Renderer.initCanvas(data.gridSize);
+            Renderer.drawGame(gameState, player1Color, player2Color);
+
+            // Update UI
+            UI.showGameArea();
+            UI.updateGameInfo(gameState, myPlayer, gameMode, player1Color, player2Color);
+            UI.showFeedback('New game started!');
+            break;
+
         case 'disconnect':
             // Opponent disconnected
             console.log('Opponent disconnected');
-            const message = myPlayer === 1 ? 'Guest disconnected' : 'Host disconnected';
 
-            // Show prominent error message
-            alert(message + ' - Returning to menu');
-            UI.showError(message);
+            // Check if this was an intentional disconnect
+            const wasIntentional = intentionalDisconnect;
 
-            // Clean up
-            Network.closeConnection();
-            gameState = null;
-            gameMode = null;
+            // Only show error if this wasn't an intentional disconnect
+            if (!wasIntentional) {
+                // Opponent disconnected unexpectedly - always return to menu
+                const message = myPlayer === 1 ? 'Guest disconnected - Returning to menu' : 'Host disconnected - Returning to menu';
+                UI.showError(message);
 
-            // Return to menu immediately
-            UI.showMenu();
+                // Small delay before returning to menu so user can see the message
+                setTimeout(() => {
+                    UI.showMenu();
+                }, 2000);
+
+                // Clean up
+                Network.closeConnection();
+                gameState = null;
+                gameMode = null;
+            } else {
+                // Intentional disconnect - already cleaned up
+                Network.closeConnection();
+                gameState = null;
+                gameMode = null;
+            }
+
+            intentionalDisconnect = false;  // Reset flag
             break;
 
         default:
@@ -510,6 +569,14 @@ function handleNetworkMessage(data) {
  * @param {string} color - Your new color
  */
 export function sendColorUpdate(playerNumber, color) {
+    // Update local color first
+    if (playerNumber === 1) {
+        player1Color = color;
+    } else {
+        player2Color = color;
+    }
+
+    // Send to opponent if online
     if (gameMode === 'online') {
         Network.sendData({
             type: 'colorUpdate',

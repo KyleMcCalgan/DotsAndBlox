@@ -127,7 +127,9 @@ function setupHostLobbyListeners() {
     document.getElementById('startOnlineGameBtn').addEventListener('click', () => {
         const gridSize = parseInt(document.getElementById('hostGridSize').value);
         console.log('Starting online game, grid:', gridSize);
-        GameController.startOnlineGame(gridSize, hostSelectedColor, guestSelectedColor);
+        // Get colors from game controller (they've been updated by colorUpdate messages)
+        const colors = GameController.getPlayerColors();
+        GameController.startOnlineGame(gridSize, colors.player1Color, colors.player2Color);
     });
 
     // Copy peer ID button

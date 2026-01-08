@@ -152,10 +152,34 @@ export function showGameOver(gameState, sessionStats) {
 // ===== FEEDBACK & ERRORS =====
 
 /**
+ * Show loading indicator
+ * @param {string} message - Loading message to display
+ */
+export function showLoading(message = 'Connecting...') {
+    const loadingEl = document.getElementById('loadingIndicator');
+    const loadingText = document.getElementById('loadingText');
+    if (loadingEl && loadingText) {
+        loadingText.textContent = message;
+        loadingEl.classList.remove('hidden');
+    }
+}
+
+/**
+ * Hide loading indicator
+ */
+export function hideLoading() {
+    const loadingEl = document.getElementById('loadingIndicator');
+    if (loadingEl) {
+        loadingEl.classList.add('hidden');
+    }
+}
+
+/**
  * Show error toast message
  * @param {string} message - Error message to display
  */
 export function showError(message) {
+    hideLoading(); // Hide loading if showing an error
     showToast(message, 'error');
 }
 
@@ -240,7 +264,7 @@ export function showGuestLobby() {
 
 /**
  * Update lobby connection status (for host)
- * @param {string} status - 'ready' when guest connects
+ * @param {string} status - 'waiting' or 'ready'
  */
 export function updateLobbyStatus(status) {
     if (status === 'ready') {
@@ -251,6 +275,20 @@ export function updateLobbyStatus(status) {
 
         // Update opponent color label
         document.getElementById('hostOpponentColorLabel').textContent = "Opponent's color";
+    } else if (status === 'waiting') {
+        // Guest disconnected - disable start button and reset labels
+        document.getElementById('hostConnectionStatus').innerHTML =
+            '<span class="status-text">⏳ Waiting for opponent...</span>';
+        document.getElementById('startOnlineGameBtn').disabled = true;
+
+        // Reset opponent color preview
+        const guestPreview = document.getElementById('hostGuestColorPreview');
+        if (guestPreview) {
+            guestPreview.style.background = '#4A6FA5'; // Reset to default
+        }
+
+        // Reset opponent color label
+        document.getElementById('hostOpponentColorLabel').textContent = "Opponent's color (not connected)";
     }
 }
 
