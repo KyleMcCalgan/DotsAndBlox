@@ -26,35 +26,35 @@ export function initializePeer(onReady, onError) {
         pingInterval: 5000, // Send keepalive ping every 5 seconds to maintain connection
         config: {
             iceServers: [
-                // STUN servers for NAT discovery
+                // Multiple STUN servers for NAT discovery
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:global.stun.twilio.com:3478' },
-                // Multiple TURN servers for better reliability
-                // Metered TURN servers (free tier)
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                // Free TURN server - numb.viagenie.ca (well-known, reliable)
                 {
                     urls: [
-                        'turn:a.relay.metered.ca:80',
-                        'turn:a.relay.metered.ca:80?transport=tcp',
-                        'turn:a.relay.metered.ca:443',
-                        'turn:a.relay.metered.ca:443?transport=tcp'
+                        'turn:numb.viagenie.ca',
+                        'turn:numb.viagenie.ca:3478?transport=udp',
+                        'turn:numb.viagenie.ca:3478?transport=tcp'
                     ],
-                    username: 'e88a88db238a11f6b8f66449',
-                    credential: 'P5FwZ3LiYxmRm2aH'
+                    username: 'webrtc@live.com',
+                    credential: 'muazkh'
                 },
-                // Fallback TURN server
+                // Additional free TURN servers
                 {
-                    urls: [
-                        'turn:openrelay.metered.ca:80',
-                        'turn:openrelay.metered.ca:443',
-                        'turn:openrelay.metered.ca:443?transport=tcp'
-                    ],
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                }
+                    urls: 'turn:turn.bistri.com:80',
+                    username: 'homeo',
+                    credential: 'homeo'
+                },
+                // Twilio STUN as backup
+                { urls: 'stun:global.stun.twilio.com:3478' }
             ],
-            iceTransportPolicy: 'all', // Use all available ICE candidates
-            iceCandidatePoolSize: 10 // Pre-gather ICE candidates for faster connection
+            iceTransportPolicy: 'all', // Try all connection types
+            iceCandidatePoolSize: 10, // Pre-gather candidates
+            bundlePolicy: 'max-bundle',
+            rtcpMuxPolicy: 'require'
         }
     });
 
@@ -187,14 +187,15 @@ export function joinGame(hostPeerId, onConnected, onError) {
     // Set up connection listeners
     setupConnectionListeners(connection, onConnected);
 
-    // Extended connection timeout (20 seconds for slow networks)
+    // Extended connection timeout (30 seconds to allow TURN relay setup)
     const timeout = setTimeout(() => {
         if (connection && !connection.open) {
-            console.error('Connection timeout after 20 seconds');
-            onError('Connection timeout - host may be offline or unreachable');
+            console.error('❌ Connection timeout after 30 seconds');
+            console.error('Could not establish P2P connection - network may be too restrictive');
+            onError('Connection timeout - unable to connect through firewalls. Try a different network or use Local Mode.');
             closeConnection();
         }
-    }, 20000);
+    }, 30000);
 
     // Clear timeout on successful connection
     connection.on('open', () => {
@@ -259,6 +260,9 @@ function setupConnectionListeners(conn, onConnected) {
             console.log('📡 Connection state:', conn.peerConnection.connectionState);
         };
 
+        // Track relay candidates
+        let hasRelayCandidates = false;
+
         // Log ICE candidates as they're gathered (critical for debugging)
         conn.peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
@@ -272,10 +276,16 @@ function setupConnectionListeners(conn, onConnected) {
 
                 // Alert if we get a relay candidate (TURN is working!)
                 if (candidate.type === 'relay') {
-                    console.log('✅ TURN relay candidate found! TURN servers are working.');
+                    hasRelayCandidates = true;
+                    console.log('✅✅✅ TURN RELAY CANDIDATE FOUND! ✅✅✅');
+                    console.log('TURN servers are working - connection should succeed!');
                 }
             } else {
                 console.log('✓ ICE candidate gathering complete');
+                if (!hasRelayCandidates) {
+                    console.warn('⚠️ WARNING: No TURN relay candidates found!');
+                    console.warn('This may cause connection failures through restrictive NATs/firewalls');
+                }
             }
         };
     }
