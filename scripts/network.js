@@ -20,8 +20,16 @@ let myPeerId = null;
 export function initializePeer(onReady, onError) {
     console.log('Initializing PeerJS...');
 
-    // Create peer with auto-generated ID
-    peer = new Peer();
+    // Create peer with auto-generated ID and STUN servers for NAT traversal
+    peer = new Peer({
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:global.stun.twilio.com:3478' },
+                { urls: 'stun:stun.services.mozilla.com' }
+            ]
+        }
+    });
 
     // Peer ready - ID generated
     peer.on('open', (id) => {

@@ -112,6 +112,16 @@
     font-size: 18px;
 }
 
+.version-identifier {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-light);
+    opacity: 0.6;
+    font-family: 'Courier New', monospace;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+}
+
 .grid-size-selector {
     text-align: center;
     margin-top: 20px;
