@@ -576,8 +576,8 @@ export function sendColorUpdate(playerNumber, color) {
         player2Color = color;
     }
 
-    // Send to opponent if online
-    if (gameMode === 'online') {
+    // Send to opponent if online AND connected
+    if (gameMode === 'online' && Network.getConnectionStatus() === 'connected') {
         Network.sendData({
             type: 'colorUpdate',
             player: playerNumber,

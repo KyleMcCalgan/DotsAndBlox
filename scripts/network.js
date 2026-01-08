@@ -22,27 +22,33 @@ export function initializePeer(onReady, onError) {
 
     // Create peer with auto-generated ID, STUN and TURN servers for NAT traversal
     peer = new Peer({
-        debug: 2, // Enable debug logging (0=none, 1=errors, 2=warnings, 3=all)
+        debug: 3, // Maximum debug logging to diagnose connection issues
+        pingInterval: 5000, // Send keepalive ping every 5 seconds to maintain connection
         config: {
             iceServers: [
                 // STUN servers for NAT discovery
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
                 { urls: 'stun:global.stun.twilio.com:3478' },
-                // TURN server for relay (fallback when direct connection fails)
+                // Multiple TURN servers for better reliability
+                // Metered TURN servers (free tier)
                 {
-                    urls: 'turn:openrelay.metered.ca:80',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
+                    urls: [
+                        'turn:a.relay.metered.ca:80',
+                        'turn:a.relay.metered.ca:80?transport=tcp',
+                        'turn:a.relay.metered.ca:443',
+                        'turn:a.relay.metered.ca:443?transport=tcp'
+                    ],
+                    username: 'e88a88db238a11f6b8f66449',
+                    credential: 'P5FwZ3LiYxmRm2aH'
                 },
+                // Fallback TURN server
                 {
-                    urls: 'turn:openrelay.metered.ca:443',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    urls: [
+                        'turn:openrelay.metered.ca:80',
+                        'turn:openrelay.metered.ca:443',
+                        'turn:openrelay.metered.ca:443?transport=tcp'
+                    ],
                     username: 'openrelayproject',
                     credential: 'openrelayproject'
                 }
@@ -94,20 +100,29 @@ export function initializePeer(onReady, onError) {
         onError(message);
     });
 
-    // Handle disconnection
+    // Handle disconnection from PeerJS signaling server
     peer.on('disconnected', () => {
-        console.warn('Peer disconnected from server');
-        // Notify if we have an active connection
-        if (connection) {
-            handleDisconnection();
+        console.warn('⚠️ Peer disconnected from PeerJS signaling server');
+        console.log('Attempting to reconnect...');
+
+        // Try to reconnect to the signaling server
+        try {
+            peer.reconnect();
+            console.log('Reconnection initiated');
+        } catch (err) {
+            console.error('Failed to reconnect:', err);
+            // Only notify user if we have an active game connection
+            if (connection && connection.open) {
+                handleDisconnection();
+            }
         }
     });
 
-    // Handle close
+    // Handle close (permanent disconnection)
     peer.on('close', () => {
-        console.log('Peer connection closed');
-        // Notify if we have an active connection
-        if (connection) {
+        console.log('❌ Peer connection closed permanently');
+        // Notify if we have an active game connection
+        if (connection && connection.open) {
             handleDisconnection();
         }
     });
@@ -227,18 +242,41 @@ function setupConnectionListeners(conn, onConnected) {
         handleDisconnection();
     });
 
-    // ICE state change (for debugging)
+    // ICE state change and candidate logging (for debugging)
     if (conn.peerConnection) {
+        // Log ICE connection state changes
         conn.peerConnection.oniceconnectionstatechange = () => {
-            console.log('ICE connection state:', conn.peerConnection.iceConnectionState);
+            console.log('🔌 ICE connection state:', conn.peerConnection.iceConnectionState);
         };
 
+        // Log ICE gathering state changes
         conn.peerConnection.onicegatheringstatechange = () => {
-            console.log('ICE gathering state:', conn.peerConnection.iceGatheringState);
+            console.log('🔍 ICE gathering state:', conn.peerConnection.iceGatheringState);
         };
 
+        // Log overall connection state
         conn.peerConnection.onconnectionstatechange = () => {
-            console.log('Connection state:', conn.peerConnection.connectionState);
+            console.log('📡 Connection state:', conn.peerConnection.connectionState);
+        };
+
+        // Log ICE candidates as they're gathered (critical for debugging)
+        conn.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                const candidate = event.candidate;
+                console.log('🎯 ICE candidate found:', {
+                    type: candidate.type, // 'host', 'srflx' (STUN), or 'relay' (TURN)
+                    protocol: candidate.protocol,
+                    address: candidate.address,
+                    port: candidate.port
+                });
+
+                // Alert if we get a relay candidate (TURN is working!)
+                if (candidate.type === 'relay') {
+                    console.log('✅ TURN relay candidate found! TURN servers are working.');
+                }
+            } else {
+                console.log('✓ ICE candidate gathering complete');
+            }
         };
     }
 }
@@ -252,16 +290,16 @@ function setupConnectionListeners(conn, onConnected) {
  */
 export function sendData(data) {
     if (!connection) {
-        console.error('No connection established');
+        console.warn('Cannot send data - no peer connection established yet');
         return false;
     }
 
     if (!connection.open) {
-        console.error('Connection not open');
+        console.warn('Cannot send data - connection not open');
         return false;
     }
 
-    console.log('Sending data:', data.type || data);
+    console.log('✓ Sending data:', data.type || data);
     connection.send(data);
     return true;
 }
