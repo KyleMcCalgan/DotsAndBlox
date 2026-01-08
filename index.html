@@ -18,7 +18,7 @@
                 <button id="localModeBtn" class="btn btn-primary">Local Mode</button>
                 <button id="onlineModeBtn" class="btn btn-primary">Online Mode</button>
             </div>
-            <div class="version-identifier">v properPeertoPeer</div>
+            <div class="version-identifier">v2 properPeertoPeer</div>
         </div>
     </div> 
  
@@ -274,10 +274,20 @@
     <!-- Error Toast -->
     <div id="errorToast" class="toast hidden"></div>
 
-    <!-- PeerJS Library --> 
-    <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script> 
- 
-    <!-- Game Scripts --> 
+    <!-- Mobile Debug Console (Eruda) - Remove this section after debugging -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        // Auto-init Eruda on mobile devices or when ?debug=true in URL
+        if (/Mobile|Android|iPhone|iPad/i.test(navigator.userAgent) || window.location.search.includes('debug=true')) {
+            eruda.init();
+            console.log('📱 Mobile console enabled - Click the floating button to view logs');
+        }
+    </script>
+
+    <!-- PeerJS Library -->
+    <script src="https://unpkg.com/peerjs@1.5.0/dist/peerjs.min.js"></script>
+
+    <!-- Game Scripts -->
     <script type="module" src="scripts/main.js"></script> 
 </body> 
 </html> 
